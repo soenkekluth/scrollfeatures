@@ -5,21 +5,19 @@ import scrollParent from './scroll-parent';
 export default class ScrollFeatures extends EventDispatcher {
 
   static getInstance(scrollTarget, options) {
-    if (!scrollTarget.scrollEvents) {
+    if (!scrollTarget.scrollFeatures) {
       return new ScrollFeatures(scrollTarget, options);
     }
-    return scrollTarget.scrollEvents;
+    return scrollTarget.scrollFeatures;
   }
 
   static hasInstance(scrollTarget) {
-    return (typeof scrollTarget.scrollEvents !== 'undefined');
+    return (typeof scrollTarget.scrollFeatures !== 'undefined');
   }
 
   static getScrollParent(element){
     return scrollParent(element);
   }
-
-  static hasScrollTarget = ScrollFeatures.hasInstance;
 
   static get windowScrollY() {
     return (window.pageYOffset || window.scrollY || 0);
@@ -77,13 +75,13 @@ export default class ScrollFeatures extends EventDispatcher {
 
   constructor(scrollTarget = window, options = {}) {
 
-    if (ScrollFeatures.hasScrollTarget(scrollTarget)) {
+    if (ScrollFeatures.hasInstance(scrollTarget)) {
       return ScrollFeatures.getInstance(scrollTarget);
     }
 
     super({ target: scrollTarget });
 
-    scrollTarget.scrollEvents = this;
+    scrollTarget.scrollFeatures = this;
     this._scrollTarget = scrollTarget;
     this.options = options;
 
@@ -92,7 +90,6 @@ export default class ScrollFeatures extends EventDispatcher {
     }
 
     this.init();
-
   }
 
   init() {
@@ -114,16 +111,17 @@ export default class ScrollFeatures extends EventDispatcher {
     this._canScrollY = false;
     this._canScrollX = false;
 
-    this.getScrollPosition = (this._scrollTarget === window) ? delegate(this, this._getWindowScrollPosition) : delegate(this, this._getElementScrollPosition);
+    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? this._getWindowScrollPosition : this._getElementScrollPosition ));
 
+    this.onResize = delegate(this, () => this.trigger(ScrollFeatures.EVENT_SCROLL_RESIZE));
     this.onScroll = delegate(this, this.onScroll);
-    this.onResize = delegate(this, this.onResize);
     this.onNextFrame = delegate(this, this.onNextFrame);
 
     this.updateScrollPosition();
 
     this._canScrollY = this.clientHeight < this.scrollHeight;
     this._canScrollX = this.clientWidth < this.scrollWidth;
+
     if (this._scrollTarget !== window) {
       var style = window.getComputedStyle(this._scrollTarget);
       this._canScrollY = style['overflow-y'] !== 'hidden';
@@ -131,31 +129,17 @@ export default class ScrollFeatures extends EventDispatcher {
     }
 
     if (this._scrollTarget.addEventListener) {
-      // this._scrollTarget.addEventListener('mousewheel', this.onScroll, Can.passiveEvents ? { passive: true } : false);
       this._scrollTarget.addEventListener('scroll', this.onScroll, false);
       this._scrollTarget.addEventListener('resize', this.onResize, false);
     } else if (this._scrollTarget.attachEvent) {
-      // this._scrollTarget.attachEvent('onmousewheel', this.onScroll);
       this._scrollTarget.attachEvent('scroll', this.onScroll);
       this._scrollTarget.attachEvent('resize', this.onResize);
     }
   }
 
-
-  update() {
-    var scrollY = this._scrollY;
-    var scrollX = this._scrollX;
-    this.updateScrollPosition();
-    if (scrollY !== this.y || scrollX !== this.x) {
-      this.trigger(ScrollFeatures.EVENT_SCROLL_PROGRESS);
-    }
-  }
-
-
   get destroyed() {
     return this._destroyed;
   }
-
 
   destroy() {
     if (!this._destroyed) {
@@ -164,11 +148,9 @@ export default class ScrollFeatures extends EventDispatcher {
       super.destroy();
 
       if (this._scrollTarget.addEventListener) {
-        // this._scrollTarget.removeEventListener('mousewheel', this.onScroll);
         this._scrollTarget.removeEventListener('scroll', this.onScroll);
         this._scrollTarget.removeEventListener('resize', this.onResize);
       } else if (this._scrollTarget.attachEvent) {
-        // this._scrollTarget.detachEvent('onmousewheel', this.onScroll);
         this._scrollTarget.detachEvent('scroll', this.onScroll);
         this._scrollTarget.detachEvent('resize', this.onResize);
       }
@@ -184,7 +166,6 @@ export default class ScrollFeatures extends EventDispatcher {
 
 
   updateScrollPosition() {
-
     this._scrollY = this.scrollY;
     this._scrollX = this.scrollX;
   }
@@ -221,17 +202,6 @@ export default class ScrollFeatures extends EventDispatcher {
     return this._directionX;
   }
 
-  get attributes() {
-    return {
-      y: this.y,
-      x: this.x,
-      speedY: this.speedY,
-      speedX: this.speedX,
-      directionY: this.directionY,
-      directionX: this.directionX
-    };
-  }
-
   get scrollTarget() {
     return this._scrollTarget;
   }
@@ -251,6 +221,15 @@ export default class ScrollFeatures extends EventDispatcher {
   get speedX() {
     return this._speedX;
   }
+
+  get canScrollY() {
+    return this._canScrollY;
+  }
+
+  get canScrollX() {
+    return this._canScrollX;
+  }
+
 
 
   get scrollY() {
@@ -299,10 +278,6 @@ export default class ScrollFeatures extends EventDispatcher {
       y: this._scrollTarget.scrollTop,
       x: this._scrollTarget.scrollLeft
     };
-  }
-
-  onResize() {
-    this.trigger(ScrollFeatures.EVENT_SCROLL_RESIZE);
   }
 
 
@@ -403,8 +378,13 @@ export default class ScrollFeatures extends EventDispatcher {
 
 }
 
+var _animationFrame = null;
+
 class Can {
   static get animationFrame() {
-    return !!(window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame);
-  };
+    if(_animationFrame === null){
+      _animationFrame = !!(window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame);
+    }
+    return _animationFrame;
+  }
 }

@@ -28,10 +28,14 @@
   var follower = document.querySelector('.follower');
   var prefixedTransform = PrefixFree.prefixSelector('transform');
 
-  window.console = window.console || function(){}
+  window.console = window.console || function() {}
 
   function onScroll(e) {
-    console.log(e.target.className + '   ' + e.type, ' ', e.currentTarget.attributes);
+    if (e.currentTarget.canScrollY) {
+      console.log(e.target.className + '   ' + e.type, 'y: ' + e.currentTarget.y + '  direction: ' + e.currentTarget.directionY + ' (' + ScrollFeatures.directionToString(e.currentTarget.directionY) + ')')
+    } else {
+      console.log(e.target.className + '   ' + e.type, 'x: ' + e.currentTarget.x + '  direction: ' + e.currentTarget.directionX + ' (' + ScrollFeatures.directionToString(e.currentTarget.directionX) + ')')
+    }
   };
 
   function addScrollHandler(scroll) {
