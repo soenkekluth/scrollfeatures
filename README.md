@@ -1,7 +1,7 @@
-# ScrollEvents
+# ScrollFeatures
 ### performant custom scroll events and custom scroll propertys
 
-ScrollEvents gives you custom scroll events like scroll:start, scroll:progress and scroll:end for better event / action handling
+ScrollFeatures gives you custom scroll events like scroll:start, scroll:progress and scroll:end for better event / action handling
 the events are triggered only in animation frames for the most performant way of default DOM manipulation.
 
 further more it adds special propertys to the scroll state :
@@ -15,7 +15,7 @@ directionY
 directionX
 ```
 
-ScrollEvents will only be instanciated once for the same scroll target to save memory and optimize the performance.
+ScrollFeatures will only be instanciated once for the same scroll target to save memory and optimize the performance.
 
 
 ### Dependencies
@@ -26,18 +26,18 @@ IE >= 9, *
 
 ### install
 ```
-npm install scroll-events
+npm install scrollfeatures
 ```
 ### demo (will be updated soon)
-https://rawgit.com/soenkekluth/scroll-events/master/demo/index.html
+https://rawgit.com/soenkekluth/scrollfeatures/master/demo/index.html
 please see the console.logs for now
 
 ### js
 ```javascript
-var ScrollEvents = require('scroll-events');
-var scrollEvents = new ScrollEvents(); // takes window as scroll target
+var ScrollFeatures = require('scrollfeatures');
+var scrollEvents = new ScrollFeatures(); // takes window as scroll target
 // or
-new ScrollEvents(yourElement)
+new ScrollFeatures(yourElement)
 
 
 scrollEvents.on('scroll:down', function(event) {
@@ -49,15 +49,15 @@ scrollEvents.on('scroll:up', function(event) {
 });
 
 scrollEvents.on('scroll:start', function(event) {
-  console.log('scroll:start     y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollEvents.directionToString(scrollEvents.directionY)+')')
+  console.log('scroll:start     y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollFeatures.directionToString(scrollEvents.directionY)+')')
 });
 
 scrollEvents.on('scroll:progress', function(event) {
-  console.log('scroll:progress  y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollEvents.directionToString(scrollEvents.directionY)+')')
+  console.log('scroll:progress  y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollFeatures.directionToString(scrollEvents.directionY)+')')
 });
 
 scrollEvents.on('scroll:stop', function(event) {
-  console.log('scroll:stop      y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollEvents.directionToString(scrollEvents.directionY)+')')
+  console.log('scroll:stop      y:' + scrollEvents.y + '  direction: ' + scrollEvents.directionY+' ('+ ScrollFeatures.directionToString(scrollEvents.directionY)+')')
 });
 
 ```
