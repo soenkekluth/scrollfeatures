@@ -1,6 +1,6 @@
 {
   "name": "scrollfeatures",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Performant Custom Scroll Features and Events",
   "main": "dist/scrollfeatures.js",
   "jsnext:main": "src/scrollfeatures.js",
