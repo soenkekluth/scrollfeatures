@@ -153,13 +153,14 @@ var ScrollFeatures = function (_EventDispatcher) {
 
       this.updateScrollPosition();
 
-      this._canScrollY = this.clientHeight < this.scrollHeight;
-      this._canScrollX = this.clientWidth < this.scrollWidth;
-
       if (this._scrollTarget !== window) {
-        var style = window.getComputedStyle(this._scrollTarget);
-        this._canScrollY = style['overflow-y'] !== 'hidden';
-        this._canScrollX = style['overflow-x'] !== 'hidden';
+        var regex = /(auto|scroll)/;
+        var style = window.getComputedStyle(this._scrollTarget, null);
+        this._canScrollY = regex.test(style.getPropertyValue('overflow-y'));
+        this._canScrollX = regex.test(style.getPropertyValue('overflow-x'));
+      } else {
+        this._canScrollY = this.clientHeight < this.scrollHeight;
+        this._canScrollX = this.clientWidth < this.scrollWidth;
       }
 
       if (this._scrollTarget.addEventListener) {
@@ -190,6 +191,7 @@ var ScrollFeatures = function (_EventDispatcher) {
         this.onScroll = null;
         this.getScrollPosition = null;
         this.onNextFrame = null;
+        delete this._scrollTarget.scrollFeatures;
         this._scrollTarget = null;
         this._destroyed = true;
       }
@@ -246,7 +248,6 @@ var ScrollFeatures = function (_EventDispatcher) {
     value: function onNextFrame() {
       var _this3 = this;
 
-      // this._lastSpeed = this.speedY;
       this._speedY = this._scrollY - this.scrollY;
       this._speedX = this._scrollX - this.scrollX;
 

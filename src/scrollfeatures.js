@@ -15,7 +15,7 @@ export default class ScrollFeatures extends EventDispatcher {
     return (typeof scrollTarget.scrollFeatures !== 'undefined');
   }
 
-  static getScrollParent(element){
+  static getScrollParent(element) {
     return scrollParent(element);
   }
 
@@ -111,7 +111,7 @@ export default class ScrollFeatures extends EventDispatcher {
     this._canScrollY = false;
     this._canScrollX = false;
 
-    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? this._getWindowScrollPosition : this._getElementScrollPosition ));
+    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? this._getWindowScrollPosition : this._getElementScrollPosition));
 
     this.onResize = delegate(this, () => this.trigger(ScrollFeatures.EVENT_SCROLL_RESIZE));
     this.onScroll = delegate(this, this.onScroll);
@@ -119,13 +119,14 @@ export default class ScrollFeatures extends EventDispatcher {
 
     this.updateScrollPosition();
 
-    this._canScrollY = this.clientHeight < this.scrollHeight;
-    this._canScrollX = this.clientWidth < this.scrollWidth;
-
     if (this._scrollTarget !== window) {
-      var style = window.getComputedStyle(this._scrollTarget);
-      this._canScrollY = style['overflow-y'] !== 'hidden';
-      this._canScrollX = style['overflow-x'] !== 'hidden';
+      const regex = /(auto|scroll)/;
+      const style = window.getComputedStyle(this._scrollTarget, null);
+      this._canScrollY = regex.test(style.getPropertyValue('overflow-y'));
+      this._canScrollX = regex.test(style.getPropertyValue('overflow-x'));
+    }else{
+      this._canScrollY = this.clientHeight < this.scrollHeight;
+      this._canScrollX = this.clientWidth < this.scrollWidth;
     }
 
     if (this._scrollTarget.addEventListener) {
@@ -159,6 +160,7 @@ export default class ScrollFeatures extends EventDispatcher {
       this.onScroll = null;
       this.getScrollPosition = null;
       this.onNextFrame = null;
+      delete this._scrollTarget.scrollFeatures;
       this._scrollTarget = null;
       this._destroyed = true;
     }
@@ -229,8 +231,6 @@ export default class ScrollFeatures extends EventDispatcher {
   get canScrollX() {
     return this._canScrollX;
   }
-
-
 
   get scrollY() {
     return this.scrollPosition.y;
@@ -306,8 +306,6 @@ export default class ScrollFeatures extends EventDispatcher {
   }
 
   onNextFrame() {
-
-    // this._lastSpeed = this.speedY;
     this._speedY = this._scrollY - this.scrollY;
     this._speedX = this._scrollX - this.scrollX;
 
@@ -382,7 +380,7 @@ var _animationFrame = null;
 
 class Can {
   static get animationFrame() {
-    if(_animationFrame === null){
+    if (_animationFrame === null) {
       _animationFrame = !!(window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame);
     }
     return _animationFrame;

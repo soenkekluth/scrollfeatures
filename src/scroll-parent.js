@@ -1,6 +1,6 @@
-var regex = /(auto|scroll)/;
+const hasOverflow = require('./has-overflow');
 
-var scrollParent = function(element) {
+const scrollParent = element => {
 
   if (!(element instanceof HTMLElement)) {
     return window;
@@ -10,14 +10,12 @@ var scrollParent = function(element) {
     if (element.parentNode === document.body) {
       return window;
     }
-    var style = window.getComputedStyle(element.parentNode, null);
-    if (regex.test(style.getPropertyValue('overflow') + style.getPropertyValue('overflow-y') + style.getPropertyValue('overflow-x'))) {
+
+    if(hasOverflow(element.parentNode)){
       return element.parentNode;
     }
-
     element = element.parentNode;
   }
-
   return window;
 };
 
