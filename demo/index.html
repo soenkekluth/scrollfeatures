@@ -30,11 +30,27 @@
 
   window.console = window.console || function() {}
 
+
+  function directionToString(direction){
+    switch(direction){
+      case ScrollFeatures.direction.up:
+        return 'up';
+      case ScrollFeatures.direction.none:
+        return 'none';
+      case ScrollFeatures.direction.down:
+        return 'down';
+      case ScrollFeatures.direction.left:
+        return 'left';
+      case ScrollFeatures.direction.right:
+        return 'right';
+    }
+  }
+
   function onScroll(e) {
     if (e.currentTarget.canScrollY) {
-      console.log(e.target.className + '   ' + e.type, 'y: ' + e.currentTarget.y + '  direction: ' + e.currentTarget.directionY + ' (' + ScrollFeatures.directionToString(e.currentTarget.directionY) + ')')
+      console.log(e.target.className + '   ' + e.type, 'y: ' + e.currentTarget.y + '  direction: ' + e.currentTarget.directionY + ' (' + directionToString(e.currentTarget.directionY) + ')')
     } else {
-      console.log(e.target.className + '   ' + e.type, 'x: ' + e.currentTarget.x + '  direction: ' + e.currentTarget.directionX + ' (' + ScrollFeatures.directionToString(e.currentTarget.directionX) + ')')
+      console.log(e.target.className + '   ' + e.type, 'x: ' + e.currentTarget.x + '  direction: ' + e.currentTarget.directionX + ' (' + directionToString(e.currentTarget.directionX) + ')')
     }
   };
 
@@ -69,15 +85,15 @@
       console.log('========== scroll:max =============');
     })
     .on('scroll:start', function(event) {
-      console.log('scroll:start     y: ' + scroll.y + '  direction: ' + scroll.directionY + ' (' + ScrollFeatures.directionToString(scroll.directionY) + ')')
+      console.log('scroll:start     y: ' + scroll.y + '  direction: ' + scroll.directionY + ' (' + directionToString(scroll.directionY) + ')')
       follower.style[prefixedTransform] = 'translate3d(0,' + scroll.y + 'px,0)';
     })
     .on('scroll:progress', function(event) {
-      console.log('scroll:progress  y: ' + scroll.y + '  speed: ' + scroll.speedY + '  direction: ' + scroll.directionY + ' (' + ScrollFeatures.directionToString(scroll.directionY) + ')')
+      console.log('scroll:progress  y: ' + scroll.y + '  speed: ' + scroll.speedY + '  direction: ' + scroll.directionY + ' (' + directionToString(scroll.directionY) + ')')
       follower.style[prefixedTransform] = 'translate3d(0,' + scroll.y + 'px,0)';
     })
     .on('scroll:stop', function(event) {
-      console.log('scroll:stop      y: ' + scroll.y + '  direction: ' + scroll.directionY + ' (' + ScrollFeatures.directionToString(scroll.directionY) + ')')
+      console.log('scroll:stop      y: ' + scroll.y + '  direction: ' + scroll.directionY + ' (' + directionToString(scroll.directionY) + ')')
       follower.style[prefixedTransform] = 'translate3d(0,' + scroll.y + 'px,0)';
     });
 

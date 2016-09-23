@@ -2,6 +2,13 @@ import delegate from 'delegatejs';
 import EventDispatcher from 'eventdispatcher';
 import scrollParent from './scroll-parent';
 
+const unprefixAnimationFrame = () => {
+  if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+    window.cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+  }
+}
+
 export default class ScrollFeatures extends EventDispatcher {
 
   static getInstance(scrollTarget, options) {
@@ -19,11 +26,11 @@ export default class ScrollFeatures extends EventDispatcher {
     return scrollParent(element);
   }
 
-  static get windowScrollY() {
-    return (window.pageYOffset || window.scrollY || 0);
+  static get windowY() {
+    return (window.pageYOffset || window.y || 0);
   }
 
-  static get windowScrollX() {
+  static get windowX() {
     return (window.pageXOffset || window.scrollX || 0);
   }
 
@@ -35,43 +42,25 @@ export default class ScrollFeatures extends EventDispatcher {
     return Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth);
   }
 
-  static unprefixAnimationFrame() {
-    if (!window.requestAnimationFrame) {
-      window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-      window.cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
-    }
-  }
+  static direction = {
+    up: -1,
+    down: 1,
+    none: 0,
+    right: 2,
+    left: -2
+  };
 
-  static UP = -1;
-  static DOWN = 1;
-  static NONE = 0;
-  static RIGHT = 2;
-  static LEFT = -2;
+  static events = {
+    SCROLL_PROGRESS: 'scroll:progress',
+    SCROLL_START: 'scroll:start',
+    SCROLL_STOP: 'scroll:stop',
+    SCROLL_DOWN: 'scroll:down',
+    SCROLL_UP: 'scroll:up',
+    SCROLL_MIN: 'scroll:min',
+    SCROLL_MAX: 'scroll:max',
+    SCROLL_RESIZE: 'scroll:resize'
+  };
 
-  static EVENT_SCROLL_PROGRESS = 'scroll:progress';
-  static EVENT_SCROLL_START = 'scroll:start';
-  static EVENT_SCROLL_STOP = 'scroll:stop';
-  static EVENT_SCROLL_DOWN = 'scroll:down';
-  static EVENT_SCROLL_UP = 'scroll:up';
-  static EVENT_SCROLL_MIN = 'scroll:min';
-  static EVENT_SCROLL_MAX = 'scroll:max';
-  static EVENT_SCROLL_RESIZE = 'scroll:resize';
-
-
-  static directionToString(direction) {
-    switch (direction) {
-      case ScrollFeatures.UP:
-        return 'up';
-      case ScrollFeatures.DOWN:
-        return 'down';
-      case ScrollFeatures.NONE:
-        return 'none';
-      case ScrollFeatures.LEFT:
-        return 'left';
-      case ScrollFeatures.RIGHT:
-        return 'right';
-    }
-  }
 
   constructor(scrollTarget = window, options = {}) {
 
@@ -86,7 +75,7 @@ export default class ScrollFeatures extends EventDispatcher {
     this.options = options;
 
     if (Can.animationFrame) {
-      ScrollFeatures.unprefixAnimationFrame();
+      unprefixAnimationFrame();
     }
 
     this.init();
@@ -95,25 +84,25 @@ export default class ScrollFeatures extends EventDispatcher {
   init() {
 
     this._destroyed = false;
-    this._scrollY = 0;
-    this._scrollX = 0;
+    this._y = 0;
+    this._x = 0;
     this._speedY = 0;
     this._speedX = 0;
     this._lastSpeed = 0;
-    this._lastDirectionY = ScrollFeatures.NONE;
-    this._lastDirectionX = ScrollFeatures.NONE;
+    this._lastDirectionY = ScrollFeatures.direction.none;
+    this._lastDirectionX = ScrollFeatures.direction.none;
     this._stopFrames = 3;
     this._currentStopFrames = 0;
     this._firstRender = true;
-    this._directionY = ScrollFeatures.NONE;
-    this._directionX = ScrollFeatures.NONE;
+    this._directionY = ScrollFeatures.direction.none;
+    this._directionX = ScrollFeatures.direction.none;
     this._scrolling = false;
     this._canScrollY = false;
     this._canScrollX = false;
 
-    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? this._getWindowScrollPosition : this._getElementScrollPosition));
+    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? () => ({ y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }) : () => ({ y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft})));
 
-    this.onResize = delegate(this, () => this.trigger(ScrollFeatures.EVENT_SCROLL_RESIZE));
+    this.onResize = delegate(this, () => this.trigger(ScrollFeatures.events.SCROLL_RESIZE));
     this.onScroll = delegate(this, this.onScroll);
     this.onNextFrame = delegate(this, this.onNextFrame);
 
@@ -124,7 +113,7 @@ export default class ScrollFeatures extends EventDispatcher {
       const style = window.getComputedStyle(this._scrollTarget, null);
       this._canScrollY = regex.test(style.getPropertyValue('overflow-y'));
       this._canScrollX = regex.test(style.getPropertyValue('overflow-x'));
-    }else{
+    } else {
       this._canScrollY = this.clientHeight < this.scrollHeight;
       this._canScrollX = this.clientWidth < this.scrollWidth;
     }
@@ -168,24 +157,22 @@ export default class ScrollFeatures extends EventDispatcher {
 
 
   updateScrollPosition() {
-    this._scrollY = this.scrollY;
-    this._scrollX = this.scrollX;
+    this._y = this.y;
+    this._x = this.x;
   }
-
 
   get scrollPosition() {
     return this.getScrollPosition();
   }
 
-
   get directionY() {
     if (!this._canScrollY || (this.speedY === 0 && !this._scrolling)) {
-      this._directionY = ScrollFeatures.NONE;
+      this._directionY = ScrollFeatures.direction.none;
     } else {
       if (this.speedY > 0) {
-        this._directionY = ScrollFeatures.UP;
+        this._directionY = ScrollFeatures.direction.up;
       } else if (this.speedY < 0) {
-        this._directionY = ScrollFeatures.DOWN;
+        this._directionY = ScrollFeatures.direction.down;
       }
     }
     return this._directionY;
@@ -193,12 +180,12 @@ export default class ScrollFeatures extends EventDispatcher {
 
   get directionX() {
     if (!this._canScrollX || (this.speedX === 0 && !this._scrolling)) {
-      this._directionX = ScrollFeatures.NONE;
+      this._directionX = ScrollFeatures.direction.none;
     } else {
       if (this.speedX > 0) {
-        this._directionX = ScrollFeatures.LEFT;
+        this._directionX = ScrollFeatures.direction.left;
       } else if (this.speedX < 0) {
-        this._directionX = ScrollFeatures.RIGHT;
+        this._directionX = ScrollFeatures.direction.right;
       }
     }
     return this._directionX;
@@ -206,10 +193,6 @@ export default class ScrollFeatures extends EventDispatcher {
 
   get scrollTarget() {
     return this._scrollTarget;
-  }
-
-  get delta() {
-    return this.directionY;
   }
 
   get scrolling() {
@@ -232,22 +215,13 @@ export default class ScrollFeatures extends EventDispatcher {
     return this._canScrollX;
   }
 
-  get scrollY() {
+  get y() {
     return this.scrollPosition.y;
   }
 
-  get y() {
-    return this.scrollY;
-  }
-
-  get scrollX() {
+  get x() {
     return this.scrollPosition.x;
   }
-
-  get x() {
-    return this.scrollX;
-  }
-
 
   get clientHeight() {
     return (this._scrollTarget === window ? window.innerHeight : this._scrollTarget.clientHeight);
@@ -257,7 +231,6 @@ export default class ScrollFeatures extends EventDispatcher {
     return (this._scrollTarget === window ? window.innerWidth : this._scrollTarget.clientWidth);
   }
 
-
   get scrollHeight() {
     return (this._scrollTarget === window ? ScrollFeatures.documentHeight : this._scrollTarget.scrollHeight);
   }
@@ -266,19 +239,7 @@ export default class ScrollFeatures extends EventDispatcher {
     return (this._scrollTarget === window ? ScrollFeatures.documentWidth : this._scrollTarget.scrollWidth);
   }
 
-  _getWindowScrollPosition() {
-    return {
-      y: ScrollFeatures.windowScrollY,
-      x: ScrollFeatures.windowScrollX
-    };
-  }
 
-  _getElementScrollPosition() {
-    return {
-      y: this._scrollTarget.scrollTop,
-      x: this._scrollTarget.scrollLeft
-    };
-  }
 
 
   onScroll() {
@@ -287,16 +248,16 @@ export default class ScrollFeatures extends EventDispatcher {
       this._firstRender = false;
       if (this.y > 1 || this.x > 1) {
         this.updateScrollPosition();
-        this.trigger(ScrollFeatures.EVENT_SCROLL_PROGRESS);
+        this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
         return;
       }
     }
 
     if (!this._scrolling) {
       this._scrolling = true;
-      this._lastDirectionY = ScrollFeatures.NONE;
-      this._lastDirectionX = ScrollFeatures.NONE;
-      this.trigger(ScrollFeatures.EVENT_SCROLL_START);
+      this._lastDirectionY = ScrollFeatures.direction.none;
+      this._lastDirectionX = ScrollFeatures.direction.none;
+      this.trigger(ScrollFeatures.events.SCROLL_START);
       if (Can.animationFrame) {
         this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
       } else {
@@ -306,8 +267,8 @@ export default class ScrollFeatures extends EventDispatcher {
   }
 
   onNextFrame() {
-    this._speedY = this._scrollY - this.scrollY;
-    this._speedX = this._scrollX - this.scrollX;
+    this._speedY = this._y - this.y;
+    this._speedX = this._x - this.x;
 
     var speed = (+this.speedY) + (+this.speedX);
     if (this._scrolling && (speed === 0 && (this._currentStopFrames++ > this._stopFrames))) {
@@ -318,16 +279,16 @@ export default class ScrollFeatures extends EventDispatcher {
     this.updateScrollPosition();
 
     if (this._lastDirectionY !== this.directionY) {
-      this.trigger('scroll:' + ScrollFeatures.directionToString(this.directionY));
+      this.trigger('scroll:' + (this.directionY === ScrollFeatures.direction.down ? 'down' : 'up'));
     }
     if (this._lastDirectionX !== this.directionX) {
-      this.trigger('scroll:' + ScrollFeatures.directionToString(this.directionX));
+      this.trigger('scroll:' + (this.directionX === ScrollFeatures.direction.right ? 'right' : 'left'));
     }
 
     this._lastDirectionY = this.directionY;
     this._lastDirectionX = this.directionX;
 
-    this.trigger(ScrollFeatures.EVENT_SCROLL_PROGRESS);
+    this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
 
     if (Can.animationFrame) {
       this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
@@ -343,29 +304,29 @@ export default class ScrollFeatures extends EventDispatcher {
     this._scrolling = false;
     this.updateScrollPosition();
 
-    this.trigger(ScrollFeatures.EVENT_SCROLL_STOP);
+    this.trigger(ScrollFeatures.events.SCROLL_STOP);
 
     if (this._canScrollY) {
       if (this.y <= 0) {
-        this.trigger(ScrollFeatures.EVENT_SCROLL_MIN);
+        this.trigger(ScrollFeatures.events.SCROLL_MIN);
       } else if (this.y + this.clientHeight >= this.scrollHeight) {
-        this.trigger(ScrollFeatures.EVENT_SCROLL_MAX);
+        this.trigger(ScrollFeatures.events.SCROLL_MAX);
       }
     }
 
     if (this._canScrollX) {
       if (this.x <= 0) {
-        this.trigger(ScrollFeatures.EVENT_SCROLL_MIN);
+        this.trigger(ScrollFeatures.events.SCROLL_MIN);
       } else if (this.x + this.clientWidth >= this.scrollWidth) {
-        this.trigger(ScrollFeatures.EVENT_SCROLL_MAX);
+        this.trigger(ScrollFeatures.events.SCROLL_MAX);
       }
     }
 
-    this._currentStopFrames = 0;
     this._cancelNextFrame();
   }
 
   _cancelNextFrame() {
+    this._currentStopFrames = 0;
     if (Can.animationFrame) {
       window.cancelAnimationFrame(this.nextFrameID);
       this.nextFrameID = -1;
