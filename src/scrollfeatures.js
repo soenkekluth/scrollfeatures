@@ -101,9 +101,11 @@ export default class ScrollFeatures extends EventDispatcher {
 
   init() {
 
-    this.getScrollPosition = (this._scrollTarget === window ? (function() {return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }}.bind(this)) : (function() {return{ y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft}}.bind(this)));
+    this.getScrollPosition = (this._scrollTarget === window ? (function(){return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }}.bind(this)) : (function() {return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft}}.bind(this)));
 
-    this.onResize = this.trigger.bind(this, ScrollFeatures.events.SCROLL_RESIZE);
+     this.onResize = ()=>{
+      this.trigger(ScrollFeatures.events.SCROLL_RESIZE);
+    }
     this.onScroll = this.onScroll.bind(this);
     this.onNextFrame = this.onNextFrame.bind(this);
 

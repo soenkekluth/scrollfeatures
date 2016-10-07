@@ -115,6 +115,7 @@ var ScrollFeatures = function (_EventDispatcher) {
   }
 
   ScrollFeatures.prototype.init = function init() {
+    var _this2 = this;
 
     this.getScrollPosition = this._scrollTarget === window ? function () {
       return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX };
@@ -122,7 +123,9 @@ var ScrollFeatures = function (_EventDispatcher) {
       return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft };
     }.bind(this);
 
-    this.onResize = this.trigger.bind(this, ScrollFeatures.events.SCROLL_RESIZE);
+    this.onResize = function () {
+      _this2.trigger(ScrollFeatures.events.SCROLL_RESIZE);
+    };
     this.onScroll = this.onScroll.bind(this);
     this.onNextFrame = this.onNextFrame.bind(this);
 
@@ -201,7 +204,7 @@ var ScrollFeatures = function (_EventDispatcher) {
   };
 
   ScrollFeatures.prototype.onNextFrame = function onNextFrame() {
-    var _this2 = this;
+    var _this3 = this;
 
     this._speedY = this._y - this.y;
     this._speedX = this._x - this.x;
@@ -230,7 +233,7 @@ var ScrollFeatures = function (_EventDispatcher) {
       this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
     } else {
       this._nextTimeout = setTimeout(function () {
-        _this2.onNextFrame();
+        _this3.onNextFrame();
       }, 1000 / 60);
     }
   };

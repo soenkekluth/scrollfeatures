@@ -1,6 +1,6 @@
 {
   "name": "scrollfeatures",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Performant Custom Scroll Features and Events",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
