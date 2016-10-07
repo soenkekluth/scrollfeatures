@@ -1,6 +1,6 @@
 {
   "name": "scrollfeatures",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Performant Custom Scroll Features and Events",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -46,11 +46,6 @@
     "url": "https://github.com/soenkekluth/scrollfeatures/issues"
   },
   "homepage": "https://github.com/soenkekluth/scrollfeatures#readme",
-  "browserify": {
-    "transform": [
-      "babelify"
-    ]
-  },
   "dependencies": {
     "eventdispatcher": "2.1.0"
   },
