@@ -1,4 +1,3 @@
-import delegate from 'delegatejs';
 import EventDispatcher from 'eventdispatcher';
 import scrollParent from './scroll-parent';
 
@@ -10,6 +9,25 @@ const unprefixAnimationFrame = () => {
 }
 
 export default class ScrollFeatures extends EventDispatcher {
+
+
+  _scrollTarget = null;
+  _destroyed = false;
+  _y = 0;
+  _x = 0;
+  _speedY = 0;
+  _speedX = 0;
+  _lastSpeed = 0;
+  _lastDirectionY = ScrollFeatures.direction.none;
+  _lastDirectionX = ScrollFeatures.direction.none;
+  _stopFrames = 3;
+  _currentStopFrames = 0;
+  _firstRender = true;
+  _directionY = ScrollFeatures.direction.none;
+  _directionX = ScrollFeatures.direction.none;
+  _scrolling = false;
+  _canScrollY = false;
+  _canScrollX = false;
 
   static getInstance(scrollTarget, options) {
     if (!scrollTarget.scrollFeatures) {
@@ -83,28 +101,11 @@ export default class ScrollFeatures extends EventDispatcher {
 
   init() {
 
-    this._destroyed = false;
-    this._y = 0;
-    this._x = 0;
-    this._speedY = 0;
-    this._speedX = 0;
-    this._lastSpeed = 0;
-    this._lastDirectionY = ScrollFeatures.direction.none;
-    this._lastDirectionX = ScrollFeatures.direction.none;
-    this._stopFrames = 3;
-    this._currentStopFrames = 0;
-    this._firstRender = true;
-    this._directionY = ScrollFeatures.direction.none;
-    this._directionX = ScrollFeatures.direction.none;
-    this._scrolling = false;
-    this._canScrollY = false;
-    this._canScrollX = false;
+    this.getScrollPosition = (this._scrollTarget === window ? (function() {return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }}.bind(this)) : (function() {return{ y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft}}.bind(this)));
 
-    this.getScrollPosition = delegate(this, (this._scrollTarget === window ? () => ({ y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }) : () => ({ y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft})));
-
-    this.onResize = delegate(this, () => this.trigger(ScrollFeatures.events.SCROLL_RESIZE));
-    this.onScroll = delegate(this, this.onScroll);
-    this.onNextFrame = delegate(this, this.onNextFrame);
+    this.onResize = this.trigger.bind(this, ScrollFeatures.events.SCROLL_RESIZE);
+    this.onScroll = this.onScroll.bind(this);
+    this.onNextFrame = this.onNextFrame.bind(this);
 
     this.updateScrollPosition();
 

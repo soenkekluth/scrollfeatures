@@ -4,13 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _delegatejs = require('delegatejs');
-
-var _delegatejs2 = _interopRequireDefault(_delegatejs);
 
 var _eventdispatcher = require('eventdispatcher');
 
@@ -38,25 +32,22 @@ var unprefixAnimationFrame = function unprefixAnimationFrame() {
 var ScrollFeatures = function (_EventDispatcher) {
   _inherits(ScrollFeatures, _EventDispatcher);
 
+  ScrollFeatures.getInstance = function getInstance(scrollTarget, options) {
+    if (!scrollTarget.scrollFeatures) {
+      return new ScrollFeatures(scrollTarget, options);
+    }
+    return scrollTarget.scrollFeatures;
+  };
+
+  ScrollFeatures.hasInstance = function hasInstance(scrollTarget) {
+    return typeof scrollTarget.scrollFeatures !== 'undefined';
+  };
+
+  ScrollFeatures.getScrollParent = function getScrollParent(element) {
+    return (0, _scrollParent2.default)(element);
+  };
+
   _createClass(ScrollFeatures, null, [{
-    key: 'getInstance',
-    value: function getInstance(scrollTarget, options) {
-      if (!scrollTarget.scrollFeatures) {
-        return new ScrollFeatures(scrollTarget, options);
-      }
-      return scrollTarget.scrollFeatures;
-    }
-  }, {
-    key: 'hasInstance',
-    value: function hasInstance(scrollTarget) {
-      return typeof scrollTarget.scrollFeatures !== 'undefined';
-    }
-  }, {
-    key: 'getScrollParent',
-    value: function getScrollParent(element) {
-      return (0, _scrollParent2.default)(element);
-    }
-  }, {
     key: 'windowY',
     get: function get() {
       return window.pageYOffset || window.y || 0;
@@ -79,8 +70,8 @@ var ScrollFeatures = function (_EventDispatcher) {
   }]);
 
   function ScrollFeatures() {
-    var scrollTarget = arguments.length <= 0 || arguments[0] === undefined ? window : arguments[0];
-    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+    var scrollTarget = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window;
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     _classCallCheck(this, ScrollFeatures);
 
@@ -90,7 +81,26 @@ var ScrollFeatures = function (_EventDispatcher) {
       return _ret = ScrollFeatures.getInstance(scrollTarget), _possibleConstructorReturn(_this, _ret);
     }
 
-    var _this = _possibleConstructorReturn(this, (ScrollFeatures.__proto__ || Object.getPrototypeOf(ScrollFeatures)).call(this, { target: scrollTarget }));
+    var _this = _possibleConstructorReturn(this, _EventDispatcher.call(this, { target: scrollTarget }));
+
+    _this._scrollTarget = null;
+    _this._destroyed = false;
+    _this._y = 0;
+    _this._x = 0;
+    _this._speedY = 0;
+    _this._speedX = 0;
+    _this._lastSpeed = 0;
+    _this._lastDirectionY = ScrollFeatures.direction.none;
+    _this._lastDirectionX = ScrollFeatures.direction.none;
+    _this._stopFrames = 3;
+    _this._currentStopFrames = 0;
+    _this._firstRender = true;
+    _this._directionY = ScrollFeatures.direction.none;
+    _this._directionX = ScrollFeatures.direction.none;
+    _this._scrolling = false;
+    _this._canScrollY = false;
+    _this._canScrollX = false;
+
 
     scrollTarget.scrollFeatures = _this;
     _this._scrollTarget = scrollTarget;
@@ -104,191 +114,164 @@ var ScrollFeatures = function (_EventDispatcher) {
     return _this;
   }
 
-  _createClass(ScrollFeatures, [{
-    key: 'init',
-    value: function init() {
-      var _this2 = this;
+  ScrollFeatures.prototype.init = function init() {
 
-      this._destroyed = false;
-      this._y = 0;
-      this._x = 0;
-      this._speedY = 0;
-      this._speedX = 0;
-      this._lastSpeed = 0;
-      this._lastDirectionY = ScrollFeatures.direction.none;
-      this._lastDirectionX = ScrollFeatures.direction.none;
-      this._stopFrames = 3;
-      this._currentStopFrames = 0;
-      this._firstRender = true;
-      this._directionY = ScrollFeatures.direction.none;
-      this._directionX = ScrollFeatures.direction.none;
-      this._scrolling = false;
-      this._canScrollY = false;
-      this._canScrollX = false;
+    this.getScrollPosition = this._scrollTarget === window ? function () {
+      return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX };
+    }.bind(this) : function () {
+      return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft };
+    }.bind(this);
 
-      this.getScrollPosition = (0, _delegatejs2.default)(this, this._scrollTarget === window ? function () {
-        return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX };
-      } : function () {
-        return { y: _this2._scrollTarget.scrollTop, x: _this2._scrollTarget.scrollLeft };
-      });
+    this.onResize = this.trigger.bind(this, ScrollFeatures.events.SCROLL_RESIZE);
+    this.onScroll = this.onScroll.bind(this);
+    this.onNextFrame = this.onNextFrame.bind(this);
 
-      this.onResize = (0, _delegatejs2.default)(this, function () {
-        return _this2.trigger(ScrollFeatures.events.SCROLL_RESIZE);
-      });
-      this.onScroll = (0, _delegatejs2.default)(this, this.onScroll);
-      this.onNextFrame = (0, _delegatejs2.default)(this, this.onNextFrame);
+    this.updateScrollPosition();
 
-      this.updateScrollPosition();
+    if (this._scrollTarget !== window) {
+      var regex = /(auto|scroll)/;
+      var style = window.getComputedStyle(this._scrollTarget, null);
+      this._canScrollY = regex.test(style.getPropertyValue('overflow-y'));
+      this._canScrollX = regex.test(style.getPropertyValue('overflow-x'));
+    } else {
+      this._canScrollY = this.clientHeight < this.scrollHeight;
+      this._canScrollX = this.clientWidth < this.scrollWidth;
+    }
 
-      if (this._scrollTarget !== window) {
-        var regex = /(auto|scroll)/;
-        var style = window.getComputedStyle(this._scrollTarget, null);
-        this._canScrollY = regex.test(style.getPropertyValue('overflow-y'));
-        this._canScrollX = regex.test(style.getPropertyValue('overflow-x'));
-      } else {
-        this._canScrollY = this.clientHeight < this.scrollHeight;
-        this._canScrollX = this.clientWidth < this.scrollWidth;
-      }
+    if (this._scrollTarget.addEventListener) {
+      this._scrollTarget.addEventListener('scroll', this.onScroll, false);
+      this._scrollTarget.addEventListener('resize', this.onResize, false);
+    } else if (this._scrollTarget.attachEvent) {
+      this._scrollTarget.attachEvent('scroll', this.onScroll);
+      this._scrollTarget.attachEvent('resize', this.onResize);
+    }
+  };
+
+  ScrollFeatures.prototype.destroy = function destroy() {
+    if (!this._destroyed) {
+      this._cancelNextFrame();
+
+      _EventDispatcher.prototype.destroy.call(this);
 
       if (this._scrollTarget.addEventListener) {
-        this._scrollTarget.addEventListener('scroll', this.onScroll, false);
-        this._scrollTarget.addEventListener('resize', this.onResize, false);
+        this._scrollTarget.removeEventListener('scroll', this.onScroll);
+        this._scrollTarget.removeEventListener('resize', this.onResize);
       } else if (this._scrollTarget.attachEvent) {
-        this._scrollTarget.attachEvent('scroll', this.onScroll);
-        this._scrollTarget.attachEvent('resize', this.onResize);
-      }
-    }
-  }, {
-    key: 'destroy',
-    value: function destroy() {
-      if (!this._destroyed) {
-        this._cancelNextFrame();
-
-        _get(ScrollFeatures.prototype.__proto__ || Object.getPrototypeOf(ScrollFeatures.prototype), 'destroy', this).call(this);
-
-        if (this._scrollTarget.addEventListener) {
-          this._scrollTarget.removeEventListener('scroll', this.onScroll);
-          this._scrollTarget.removeEventListener('resize', this.onResize);
-        } else if (this._scrollTarget.attachEvent) {
-          this._scrollTarget.detachEvent('scroll', this.onScroll);
-          this._scrollTarget.detachEvent('resize', this.onResize);
-        }
-
-        this.onResize = null;
-        this.onScroll = null;
-        this.getScrollPosition = null;
-        this.onNextFrame = null;
-        delete this._scrollTarget.scrollFeatures;
-        this._scrollTarget = null;
-        this._destroyed = true;
-      }
-    }
-  }, {
-    key: 'updateScrollPosition',
-    value: function updateScrollPosition() {
-      this._y = this.y;
-      this._x = this.x;
-    }
-  }, {
-    key: 'onScroll',
-    value: function onScroll() {
-      this._currentStopFrames = 0;
-      if (this._firstRender) {
-        this._firstRender = false;
-        if (this.y > 1 || this.x > 1) {
-          this.updateScrollPosition();
-          this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
-          return;
-        }
+        this._scrollTarget.detachEvent('scroll', this.onScroll);
+        this._scrollTarget.detachEvent('resize', this.onResize);
       }
 
-      if (!this._scrolling) {
-        this._scrolling = true;
-        this._lastDirectionY = ScrollFeatures.direction.none;
-        this._lastDirectionX = ScrollFeatures.direction.none;
-        this.trigger(ScrollFeatures.events.SCROLL_START);
-        if (Can.animationFrame) {
-          this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
-        } else {
-          this.onNextFrame();
-        }
-      }
+      this.onResize = null;
+      this.onScroll = null;
+      this.getScrollPosition = null;
+      this.onNextFrame = null;
+      delete this._scrollTarget.scrollFeatures;
+      this._scrollTarget = null;
+      this._destroyed = true;
     }
-  }, {
-    key: 'onNextFrame',
-    value: function onNextFrame() {
-      var _this3 = this;
+  };
 
-      this._speedY = this._y - this.y;
-      this._speedX = this._x - this.x;
+  ScrollFeatures.prototype.updateScrollPosition = function updateScrollPosition() {
+    this._y = this.y;
+    this._x = this.x;
+  };
 
-      var speed = +this.speedY + +this.speedX;
-      if (this._scrolling && speed === 0 && this._currentStopFrames++ > this._stopFrames) {
-        this.onScrollStop();
+  ScrollFeatures.prototype.onScroll = function onScroll() {
+    this._currentStopFrames = 0;
+    if (this._firstRender) {
+      this._firstRender = false;
+      if (this.y > 1 || this.x > 1) {
+        this.updateScrollPosition();
+        this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
         return;
       }
+    }
 
-      this.updateScrollPosition();
-
-      if (this._lastDirectionY !== this.directionY) {
-        this.trigger('scroll:' + (this.directionY === ScrollFeatures.direction.down ? 'down' : 'up'));
-      }
-      if (this._lastDirectionX !== this.directionX) {
-        this.trigger('scroll:' + (this.directionX === ScrollFeatures.direction.right ? 'right' : 'left'));
-      }
-
-      this._lastDirectionY = this.directionY;
-      this._lastDirectionX = this.directionX;
-
-      this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
-
+    if (!this._scrolling) {
+      this._scrolling = true;
+      this._lastDirectionY = ScrollFeatures.direction.none;
+      this._lastDirectionX = ScrollFeatures.direction.none;
+      this.trigger(ScrollFeatures.events.SCROLL_START);
       if (Can.animationFrame) {
         this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
       } else {
-        this._nextTimeout = setTimeout(function () {
-          _this3.onNextFrame();
-        }, 1000 / 60);
+        this.onNextFrame();
       }
     }
-  }, {
-    key: 'onScrollStop',
-    value: function onScrollStop() {
+  };
 
-      this._scrolling = false;
-      this.updateScrollPosition();
+  ScrollFeatures.prototype.onNextFrame = function onNextFrame() {
+    var _this2 = this;
 
-      this.trigger(ScrollFeatures.events.SCROLL_STOP);
+    this._speedY = this._y - this.y;
+    this._speedX = this._x - this.x;
 
-      if (this._canScrollY) {
-        if (this.y <= 0) {
-          this.trigger(ScrollFeatures.events.SCROLL_MIN);
-        } else if (this.y + this.clientHeight >= this.scrollHeight) {
-          this.trigger(ScrollFeatures.events.SCROLL_MAX);
-        }
-      }
-
-      if (this._canScrollX) {
-        if (this.x <= 0) {
-          this.trigger(ScrollFeatures.events.SCROLL_MIN);
-        } else if (this.x + this.clientWidth >= this.scrollWidth) {
-          this.trigger(ScrollFeatures.events.SCROLL_MAX);
-        }
-      }
-
-      this._cancelNextFrame();
+    var speed = +this.speedY + +this.speedX;
+    if (this._scrolling && speed === 0 && this._currentStopFrames++ > this._stopFrames) {
+      this.onScrollStop();
+      return;
     }
-  }, {
-    key: '_cancelNextFrame',
-    value: function _cancelNextFrame() {
-      this._currentStopFrames = 0;
-      if (Can.animationFrame) {
-        window.cancelAnimationFrame(this.nextFrameID);
-        this.nextFrameID = -1;
-      } else {
-        clearTimeout(this._nextTimeout);
+
+    this.updateScrollPosition();
+
+    if (this._lastDirectionY !== this.directionY) {
+      this.trigger('scroll:' + (this.directionY === ScrollFeatures.direction.down ? 'down' : 'up'));
+    }
+    if (this._lastDirectionX !== this.directionX) {
+      this.trigger('scroll:' + (this.directionX === ScrollFeatures.direction.right ? 'right' : 'left'));
+    }
+
+    this._lastDirectionY = this.directionY;
+    this._lastDirectionX = this.directionX;
+
+    this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
+
+    if (Can.animationFrame) {
+      this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
+    } else {
+      this._nextTimeout = setTimeout(function () {
+        _this2.onNextFrame();
+      }, 1000 / 60);
+    }
+  };
+
+  ScrollFeatures.prototype.onScrollStop = function onScrollStop() {
+
+    this._scrolling = false;
+    this.updateScrollPosition();
+
+    this.trigger(ScrollFeatures.events.SCROLL_STOP);
+
+    if (this._canScrollY) {
+      if (this.y <= 0) {
+        this.trigger(ScrollFeatures.events.SCROLL_MIN);
+      } else if (this.y + this.clientHeight >= this.scrollHeight) {
+        this.trigger(ScrollFeatures.events.SCROLL_MAX);
       }
     }
-  }, {
+
+    if (this._canScrollX) {
+      if (this.x <= 0) {
+        this.trigger(ScrollFeatures.events.SCROLL_MIN);
+      } else if (this.x + this.clientWidth >= this.scrollWidth) {
+        this.trigger(ScrollFeatures.events.SCROLL_MAX);
+      }
+    }
+
+    this._cancelNextFrame();
+  };
+
+  ScrollFeatures.prototype._cancelNextFrame = function _cancelNextFrame() {
+    this._currentStopFrames = 0;
+    if (Can.animationFrame) {
+      window.cancelAnimationFrame(this.nextFrameID);
+      this.nextFrameID = -1;
+    } else {
+      clearTimeout(this._nextTimeout);
+    }
+  };
+
+  _createClass(ScrollFeatures, [{
     key: 'destroyed',
     get: function get() {
       return this._destroyed;
