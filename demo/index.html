@@ -48,9 +48,9 @@
 
   function onScroll(e) {
     if (e.currentTarget.canScrollY) {
-      console.log(e.target.className + '   ' + e.type, 'y: ' + e.currentTarget.y + '  direction: ' + e.currentTarget.directionY + ' (' + directionToString(e.currentTarget.directionY) + ')')
+      console.log(e.target.className + '   ===== ' + e.type + ' =====', 'y: ' + e.currentTarget.y + '  direction: ' + e.currentTarget.directionY + ' (' + directionToString(e.currentTarget.directionY) + ')')
     } else {
-      console.log(e.target.className + '   ' + e.type, 'x: ' + e.currentTarget.x + '  direction: ' + e.currentTarget.directionX + ' (' + directionToString(e.currentTarget.directionX) + ')')
+      console.log(e.target.className + '   ===== ' + e.type + ' =====',  'x: ' + e.currentTarget.x + '  direction: ' + e.currentTarget.directionX + ' (' + directionToString(e.currentTarget.directionX) + ')')
     }
   };
 
@@ -67,8 +67,7 @@
       .on('scroll:max', onScroll);
   }
 
-  var scroll = new ScrollFeatures();
-  scroll
+  var scroll = new ScrollFeatures()
     .on('scroll:resize', function(event) {
       console.log('========== scroll:resize =============', scroll.clientHeight, scroll.clientWidth);
     })

@@ -10,9 +10,7 @@ const unprefixAnimationFrame = () => {
 
 export default class ScrollFeatures extends EventDispatcher {
 
-
   _scrollTarget = null;
-  _destroyed = false;
   _y = 0;
   _x = 0;
   _speedY = 0;
@@ -45,7 +43,7 @@ export default class ScrollFeatures extends EventDispatcher {
   }
 
   static get windowY() {
-    return (window.pageYOffset || window.y || 0);
+    return (window.pageYOffset || window.scrollY || 0);
   }
 
   static get windowX() {
@@ -101,9 +99,12 @@ export default class ScrollFeatures extends EventDispatcher {
 
   init() {
 
-    this.getScrollPosition = (this._scrollTarget === window ? (function(){return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }}.bind(this)) : (function() {return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft}}.bind(this)));
+    this.getScrollPosition = (this._scrollTarget === window ? (function() {
+      return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX } }.bind(this)) : (function() {
+      return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft }
+    }.bind(this)));
 
-     this.onResize = ()=>{
+    this.onResize = () => {
       this.trigger(ScrollFeatures.events.SCROLL_RESIZE);
     }
     this.onScroll = this.onScroll.bind(this);
@@ -130,16 +131,14 @@ export default class ScrollFeatures extends EventDispatcher {
     }
   }
 
-  get destroyed() {
-    return this._destroyed;
-  }
 
   destroy() {
-    if (!this._destroyed) {
-      this._cancelNextFrame();
 
-      super.destroy();
+    this._cancelNextFrame();
 
+    super.destroy();
+
+    if(this._scrollTarget){
       if (this._scrollTarget.addEventListener) {
         this._scrollTarget.removeEventListener('scroll', this.onScroll);
         this._scrollTarget.removeEventListener('resize', this.onResize);
@@ -147,15 +146,14 @@ export default class ScrollFeatures extends EventDispatcher {
         this._scrollTarget.detachEvent('scroll', this.onScroll);
         this._scrollTarget.detachEvent('resize', this.onResize);
       }
-
-      this.onResize = null;
-      this.onScroll = null;
-      this.getScrollPosition = null;
-      this.onNextFrame = null;
-      delete this._scrollTarget.scrollFeatures;
-      this._scrollTarget = null;
-      this._destroyed = true;
     }
+
+    this.onResize = null;
+    this.onScroll = null;
+    this.getScrollPosition = null;
+    this.onNextFrame = null;
+    delete this._scrollTarget.scrollFeatures;
+    this._scrollTarget = null;
   }
 
 
