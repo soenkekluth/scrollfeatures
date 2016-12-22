@@ -241,8 +241,6 @@ export default class ScrollFeatures extends EventDispatcher {
   }
 
 
-
-
   onScroll() {
     this._currentStopFrames = 0;
     if (this._firstRender) {
