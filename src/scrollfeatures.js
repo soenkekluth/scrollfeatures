@@ -1,12 +1,6 @@
 import EventDispatcher from 'eventdispatcher';
 import scrollParent from './scroll-parent';
-
-const unprefixAnimationFrame = () => {
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-    window.cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
-  }
-}
+import nextFrame, { nextFrames, sequence, delay } from 'nextframe';
 
 export default class ScrollFeatures extends EventDispatcher {
 
@@ -89,10 +83,6 @@ export default class ScrollFeatures extends EventDispatcher {
     scrollTarget.scrollFeatures = this;
     this._scrollTarget = scrollTarget;
     this.options = options;
-
-    if (Can.animationFrame) {
-      unprefixAnimationFrame();
-    }
 
     this.init();
   }
@@ -257,11 +247,7 @@ export default class ScrollFeatures extends EventDispatcher {
       this._lastDirectionY = ScrollFeatures.direction.none;
       this._lastDirectionX = ScrollFeatures.direction.none;
       this.trigger(ScrollFeatures.events.SCROLL_START);
-      if (Can.animationFrame) {
-        this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
-      } else {
-        this.onNextFrame();
-      }
+      this.cancelFrame = nextFrames(this.onNextFrame);
     }
   }
 
@@ -288,14 +274,6 @@ export default class ScrollFeatures extends EventDispatcher {
     this._lastDirectionX = this.directionX;
 
     this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
-
-    if (Can.animationFrame) {
-      this.nextFrameID = window.requestAnimationFrame(this.onNextFrame);
-    } else {
-      this._nextTimeout = setTimeout(() => {
-        this.onNextFrame();
-      }, 1000 / 60);
-    }
   }
 
   onScrollStop() {
@@ -326,23 +304,9 @@ export default class ScrollFeatures extends EventDispatcher {
 
   _cancelNextFrame() {
     this._currentStopFrames = 0;
-    if (Can.animationFrame) {
-      window.cancelAnimationFrame(this.nextFrameID);
-      this.nextFrameID = -1;
-    } else {
-      clearTimeout(this._nextTimeout);
+    if(this.cancelFrame){
+      this.cancelFrame();
+      this.cancelFrame = null;
     }
-  }
-
-}
-
-var _animationFrame = null;
-
-class Can {
-  static get animationFrame() {
-    if (_animationFrame === null) {
-      _animationFrame = !!(window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame);
-    }
-    return _animationFrame;
   }
 }
