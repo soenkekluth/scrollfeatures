@@ -2375,12 +2375,12 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
-nextframe@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/nextframe/-/nextframe-1.2.1.tgz#532e35191f05791b58b98243f36e756546f218b1"
+nextframe@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/nextframe/-/nextframe-1.4.0.tgz#e8b5e02f1c5a00d9b9e6653cddd77f0415a53e38"
   dependencies:
-    prs "3.0.2"
-    raf "https://github.com/soenkekluth/raf"
+    prs "^3.1.0"
+    raf "^3.3.2"
 
 node-pre-gyp@^0.6.29:
   version "0.6.34"
@@ -2698,9 +2698,9 @@ process@~0.11.0:
   version "0.11.9"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.9.tgz#7bd5ad21aa6253e7da8682264f1e11d11c0318c1"
 
-prs@3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/prs/-/prs-3.0.2.tgz#87df90e03a5b12fa58d293d82a2cd47a1c944076"
+prs@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/prs/-/prs-3.1.0.tgz#09448dc9cc4407b29ed22000b3b59549ddf5c957"
 
 ps-tree@^1.0.1:
   version "1.1.0"
@@ -2738,13 +2738,13 @@ qs@6.2.1:
   version "6.2.1"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.2.1.tgz#ce03c5ff0935bc1d9d69a9f14cbd18e568d67625"
 
-"qs@>= 0.4.0", qs@~6.3.0:
-  version "6.3.2"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.3.2.tgz#e75bd5f6e268122a2a0e0bda630b2550c166502c"
-
-qs@~6.4.0:
+"qs@>= 0.4.0", qs@~6.4.0:
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.4.0.tgz#13e26d28ad6b0ffaa91312cd3bf708ed351e7233"
+
+qs@~6.3.0:
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.3.2.tgz#e75bd5f6e268122a2a0e0bda630b2550c166502c"
 
 querystring-es3@~0.2.0:
   version "0.2.1"
@@ -2754,9 +2754,9 @@ querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
 
-"raf@https://github.com/soenkekluth/raf":
-  version "3.3.0"
-  resolved "https://github.com/soenkekluth/raf#c5aaacf3a9db79aac602d06f222cabbbfb3f5f7d"
+raf@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/raf/-/raf-3.3.2.tgz#0c13be0b5b49b46f76d6669248d527cf2b02fe27"
   dependencies:
     performance-now "^2.1.0"
 

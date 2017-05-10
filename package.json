@@ -1,6 +1,6 @@
 {
   "name": "scrollfeatures",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Performant Custom Scroll Features and Events",
   "main": "lib/scrollfeatures.js",
   "scripts": {
@@ -50,7 +50,7 @@
   "homepage": "https://github.com/soenkekluth/scrollfeatures#readme",
   "dependencies": {
     "eventdispatcher": "^2.6.0",
-    "nextframe": "^1.2.1"
+    "nextframe": "^1.4.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
