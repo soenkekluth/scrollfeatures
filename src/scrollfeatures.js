@@ -138,10 +138,10 @@ export default class ScrollFeatures extends EventDispatcher {
       }
     }
 
-    this.onResize = null;
-    this.onScroll = null;
-    this.getScrollPosition = null;
-    this.onNextFrame = null;
+    // this.onResize = null;
+    // this.onScroll = null;
+    // this.getScrollPosition = null;
+    // this.onNextFrame = null;
     delete this._scrollTarget.scrollFeatures;
     this._scrollTarget = null;
   }
@@ -282,6 +282,7 @@ export default class ScrollFeatures extends EventDispatcher {
 
     this._scrolling = false;
     this.updateScrollPosition();
+    this._cancelNextFrame();
 
     this.trigger(ScrollFeatures.events.SCROLL_STOP);
 
@@ -301,10 +302,10 @@ export default class ScrollFeatures extends EventDispatcher {
       }
     }
 
-    this._cancelNextFrame();
   }
 
   _cancelNextFrame() {
+    this._isCanceled = true;
     this._currentStopFrames = 0;
     if(this.cancelFrame){
       raf.cancel(this.cancelFrame);

@@ -1,6 +1,6 @@
 {
   "name": "scrollfeatures",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Performant Custom Scroll Features and Events",
   "main": "lib/scrollfeatures.js",
   "scripts": {
