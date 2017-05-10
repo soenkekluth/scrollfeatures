@@ -266,7 +266,7 @@ export default class ScrollFeatures extends EventDispatcher {
 
       if (this._speedY < 0) {
         this._maxSpeedY = this._speedY < this._maxSpeedY ? this._speedY : this._maxSpeedY;
-      } else if(this._speedY > 0){
+      } else if (this._speedY > 0) {
         this._maxSpeedY = this._speedY > this._maxSpeedY ? this._speedY : this._maxSpeedY;
       }
 
@@ -298,24 +298,30 @@ export default class ScrollFeatures extends EventDispatcher {
 
     this._cancelNextFrame();
     this._scrolling = false;
-    this.updateScrollPosition();
 
-    this.trigger(ScrollFeatures.events.SCROLL_STOP);
+    if (this._scrollTarget) {
+      this.updateScrollPosition();
 
-    if (this._canScrollY) {
-      if (this.y <= 0) {
-        this.trigger(ScrollFeatures.events.SCROLL_MIN);
-      } else if (this.y + this.clientHeight >= this.scrollHeight) {
-        this.trigger(ScrollFeatures.events.SCROLL_MAX);
+      this.trigger(ScrollFeatures.events.SCROLL_STOP);
+
+      if (this._canScrollY) {
+        if (this.y <= 0) {
+          this.trigger(ScrollFeatures.events.SCROLL_MIN);
+        } else if (this.y + this.clientHeight >= this.scrollHeight) {
+          this.trigger(ScrollFeatures.events.SCROLL_MAX);
+        }
       }
-    }
 
-    if (this._canScrollX) {
-      if (this.x <= 0) {
-        this.trigger(ScrollFeatures.events.SCROLL_MIN);
-      } else if (this.x + this.clientWidth >= this.scrollWidth) {
-        this.trigger(ScrollFeatures.events.SCROLL_MAX);
+      if (this._canScrollX) {
+        if (this.x <= 0) {
+          this.trigger(ScrollFeatures.events.SCROLL_MIN);
+        } else if (this.x + this.clientWidth >= this.scrollWidth) {
+          this.trigger(ScrollFeatures.events.SCROLL_MAX);
+        }
       }
+
+    } else {
+      this.trigger(ScrollFeatures.events.SCROLL_STOP);
     }
 
   }
