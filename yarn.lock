@@ -2375,13 +2375,6 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
-nextframe@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/nextframe/-/nextframe-1.4.0.tgz#e8b5e02f1c5a00d9b9e6653cddd77f0415a53e38"
-  dependencies:
-    prs "^3.1.0"
-    raf "^3.3.2"
-
 node-pre-gyp@^0.6.29:
   version "0.6.34"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.34.tgz#94ad1c798a11d7fc67381b50d47f8cc18d9799f7"
@@ -2697,10 +2690,6 @@ process-nextick-args@~1.0.6:
 process@~0.11.0:
   version "0.11.9"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.9.tgz#7bd5ad21aa6253e7da8682264f1e11d11c0318c1"
-
-prs@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/prs/-/prs-3.1.0.tgz#09448dc9cc4407b29ed22000b3b59549ddf5c957"
 
 ps-tree@^1.0.1:
   version "1.1.0"

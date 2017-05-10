@@ -1,6 +1,6 @@
 import EventDispatcher from 'eventdispatcher';
 import scrollParent from './scroll-parent';
-import nextFrame, { nextFrames, sequence, delay } from 'nextframe';
+import raf from 'raf';
 
 export default class ScrollFeatures extends EventDispatcher {
 
@@ -247,7 +247,7 @@ export default class ScrollFeatures extends EventDispatcher {
       this._lastDirectionY = ScrollFeatures.direction.none;
       this._lastDirectionX = ScrollFeatures.direction.none;
       this.trigger(ScrollFeatures.events.SCROLL_START);
-      this.cancelFrame = nextFrames(this.onNextFrame);
+      this.cancelFrame = raf(this.onNextFrame);
     }
   }
 
@@ -274,6 +274,8 @@ export default class ScrollFeatures extends EventDispatcher {
     this._lastDirectionX = this.directionX;
 
     this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
+
+    this.cancelFrame = raf(this.onNextFrame);
   }
 
   onScrollStop() {
@@ -305,7 +307,7 @@ export default class ScrollFeatures extends EventDispatcher {
   _cancelNextFrame() {
     this._currentStopFrames = 0;
     if(this.cancelFrame){
-      this.cancelFrame();
+      raf.cancel(this.cancelFrame);
       this.cancelFrame = null;
     }
   }
