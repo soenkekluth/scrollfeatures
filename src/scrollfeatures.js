@@ -8,6 +8,7 @@ export default class ScrollFeatures extends EventDispatcher {
   _y = 0;
   _x = 0;
   _speedY = 0;
+  _maxSpeedY = 0;
   _speedX = 0;
   _lastSpeed = 0;
   _lastDirectionY = ScrollFeatures.direction.none;
@@ -71,7 +72,6 @@ export default class ScrollFeatures extends EventDispatcher {
     SCROLL_RESIZE: 'scroll:resize'
   };
 
-
   constructor(scrollTarget = window, options = {}) {
 
     if (ScrollFeatures.hasInstance(scrollTarget)) {
@@ -82,6 +82,7 @@ export default class ScrollFeatures extends EventDispatcher {
 
     scrollTarget.scrollFeatures = this;
     this._scrollTarget = scrollTarget;
+    this.cancelFrame = false;
     this.options = options;
 
     this.init();
@@ -90,7 +91,8 @@ export default class ScrollFeatures extends EventDispatcher {
   init() {
 
     this.getScrollPosition = (this._scrollTarget === window ? (function() {
-      return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX } }.bind(this)) : (function() {
+      return { y: ScrollFeatures.windowY, x: ScrollFeatures.windowX }
+    }.bind(this)) : (function() {
       return { y: this._scrollTarget.scrollTop, x: this._scrollTarget.scrollLeft }
     }.bind(this)));
 
@@ -121,14 +123,12 @@ export default class ScrollFeatures extends EventDispatcher {
     }
   }
 
-
   destroy() {
 
     this._cancelNextFrame();
-
     super.destroy();
 
-    if(this._scrollTarget){
+    if (this._scrollTarget) {
       if (this._scrollTarget.addEventListener) {
         this._scrollTarget.removeEventListener('scroll', this.onScroll);
         this._scrollTarget.removeEventListener('resize', this.onResize);
@@ -145,7 +145,6 @@ export default class ScrollFeatures extends EventDispatcher {
     delete this._scrollTarget.scrollFeatures;
     this._scrollTarget = null;
   }
-
 
   updateScrollPosition() {
     this._y = this.y;
@@ -194,8 +193,16 @@ export default class ScrollFeatures extends EventDispatcher {
     return this._speedY;
   }
 
+  get speedY() {
+    return this._speedY;
+  }
+
   get speedX() {
     return this._speedX;
+  }
+
+  get maxSpeedY() {
+    return this._maxSpeedY;
   }
 
   get canScrollY() {
@@ -230,7 +237,6 @@ export default class ScrollFeatures extends EventDispatcher {
     return (this._scrollTarget === window ? ScrollFeatures.documentWidth : this._scrollTarget.scrollWidth);
   }
 
-
   onScroll() {
     this._currentStopFrames = 0;
     if (this._firstRender) {
@@ -244,45 +250,55 @@ export default class ScrollFeatures extends EventDispatcher {
 
     if (!this._scrolling) {
       this._scrolling = true;
+      this._maxSpeedY = 0;
       this._lastDirectionY = ScrollFeatures.direction.none;
       this._lastDirectionX = ScrollFeatures.direction.none;
       this.trigger(ScrollFeatures.events.SCROLL_START);
-      this.cancelFrame = raf(this.onNextFrame);
+      this.cancelFrame = false;
+      raf(this.onNextFrame);
     }
   }
 
   onNextFrame() {
-    this._speedY = this._y - this.y;
-    this._speedX = this._x - this.x;
+    if (!this.cancelFrame) {
+      this._speedY = this._y - this.y;
+      this._speedX = this._x - this.x;
 
-    var speed = (+this.speedY) + (+this.speedX);
-    if (this._scrolling && (speed === 0 && (this._currentStopFrames++ > this._stopFrames))) {
-      this.onScrollStop();
-      return;
+      if (this._speedY < 0) {
+        this._maxSpeedY = this._speedY < this._maxSpeedY ? this._speedY : this._maxSpeedY;
+      } else if(this._speedY > 0){
+        this._maxSpeedY = this._speedY > this._maxSpeedY ? this._speedY : this._maxSpeedY;
+      }
+
+      var speed = (+this.speedY) + (+this.speedX);
+      if (this._scrolling && (speed === 0 && (this._currentStopFrames++ > this._stopFrames))) {
+        this.onScrollStop();
+        return;
+      }
+
+      this.updateScrollPosition();
+
+      if (this._lastDirectionY !== this.directionY) {
+        this.trigger('scroll:' + (this.directionY === ScrollFeatures.direction.down ? 'down' : 'up'));
+      }
+      if (this._lastDirectionX !== this.directionX) {
+        this.trigger('scroll:' + (this.directionX === ScrollFeatures.direction.right ? 'right' : 'left'));
+      }
+
+      this._lastDirectionY = this.directionY;
+      this._lastDirectionX = this.directionX;
+
+      this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
+
+      raf(this.onNextFrame);
     }
-
-    this.updateScrollPosition();
-
-    if (this._lastDirectionY !== this.directionY) {
-      this.trigger('scroll:' + (this.directionY === ScrollFeatures.direction.down ? 'down' : 'up'));
-    }
-    if (this._lastDirectionX !== this.directionX) {
-      this.trigger('scroll:' + (this.directionX === ScrollFeatures.direction.right ? 'right' : 'left'));
-    }
-
-    this._lastDirectionY = this.directionY;
-    this._lastDirectionX = this.directionX;
-
-    this.trigger(ScrollFeatures.events.SCROLL_PROGRESS);
-
-    this.cancelFrame = raf(this.onNextFrame);
   }
 
   onScrollStop() {
 
+    this._cancelNextFrame();
     this._scrolling = false;
     this.updateScrollPosition();
-    this._cancelNextFrame();
 
     this.trigger(ScrollFeatures.events.SCROLL_STOP);
 
@@ -305,11 +321,7 @@ export default class ScrollFeatures extends EventDispatcher {
   }
 
   _cancelNextFrame() {
-    this._isCanceled = true;
+    this.cancelFrame = true;
     this._currentStopFrames = 0;
-    if(this.cancelFrame){
-      raf.cancel(this.cancelFrame);
-      this.cancelFrame = null;
-    }
   }
 }

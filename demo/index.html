@@ -88,7 +88,7 @@
       follower.style[prefixedTransform] = 'translate3d(0,' + scroll.y + 'px,0)';
     })
     .on('scroll:progress', function(event) {
-      console.log('scroll:progress  y: ' + scroll.y + '  speed: ' + scroll.speedY + '  direction: ' + scroll.directionY + ' (' + directionToString(scroll.directionY) + ')')
+      console.log('scroll:progress  y: ' + scroll.y + '  speed: ' + scroll.speedY + '  maxSpeed: ' + scroll.maxSpeedY + '  direction: ' + scroll.directionY + ' (' + directionToString(scroll.directionY) + ')')
       follower.style[prefixedTransform] = 'translate3d(0,' + scroll.y + 'px,0)';
     })
     .on('scroll:stop', function(event) {
